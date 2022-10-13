@@ -1,0 +1,57 @@
+Задание - Какой(ие) кабинет(ы) пользуются самым большим спросом?
+Поля в результирующей таблице:
+classroom
+
+
+WITH count_classroom AS (
+  SELECT classroom,
+    COUNT(classroom) AS count_room
+  FROM Schedule
+  GROUP BY classroom
+)
+SELECT classroom
+FROM count_classroom
+WHERE count_room = (
+    SELECT MAX(count_room)
+    FROM count_classroom
+  )
+
+Задание - Для каждой комнаты, которую снимали как минимум 1 раз, найдите имя человека, снимавшего ее последний раз, и дату, когда он выехал
+Поля в результирующей таблице:
+room_id
+name
+end_date
+Используйте конструкцию "as room_id" для вывода идентификатора комнаты
+
+WITH ove AS (
+  SELECT user_id,
+    end_date,
+    room_id,
+    MAX(end_date) OVER (PARTITION BY room_id) as maxx
+  FROM Reservations
+)
+SELECT Users.name,
+  ove.end_date,
+  ove.room_id
+FROM ove
+  JOIN Users ON Users.id = ove.user_id
+WHERE ove.end_date = maxx
+
+
+Задание - Удалить компании, совершившие наименьшее количество рейсов.
+
+WITH count_fl AS (
+  SELECT company,
+    COUNT(company) as countt
+  FROM Trip
+  GROUP BY company
+)
+DELETE FROM Company
+WHERE Company.id in (
+    SELECT company
+    FROM count_fl
+    WHERE countt = (
+        SELECT MIN(countt)
+        FROM count_fl
+      )
+  )
